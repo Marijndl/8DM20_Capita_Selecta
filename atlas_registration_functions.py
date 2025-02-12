@@ -6,9 +6,9 @@ import imageio
 import os
 import SimpleITK as sitk
 
-def register_transform(atlas, patient, DATA_PATH, ELASTIX_PATH, TRANSFORMIX_PATH):
+def register_transform(atlas, patient, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, TRANSFORMIX_PATH):
 
-    OUTPUT_DIR = fr'D:\capita_selecta\results_experiments\reg_{patient}_{atlas}'
+    OUTPUT_DIR = os.path.join(OUTPUT_PATH, fr'reg_{patient}_{atlas}')
     # Make a results directory if non exists
     if os.path.exists(OUTPUT_DIR) is False:
         os.mkdir(OUTPUT_DIR)

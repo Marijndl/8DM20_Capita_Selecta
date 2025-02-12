@@ -13,7 +13,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 ELASTIX_PATH = r'D:\Elastix\elastix.exe'
 TRANSFORMIX_PATH = r'D:\Elastix\transformix.exe'
 DATA_PATH = r'D:\capita_selecta\DevelopmentData\DevelopmentData'
-OUTPUT_DIR = r'D:\capita_selecta\results_experiments'
+OUTPUT_DIR = r'D:\capita_selecta\results_experiments_5'
 
 if not os.path.exists(ELASTIX_PATH):
     raise IOError('Elastix cannot be found, please set the correct ELASTIX_PATH.')
@@ -36,8 +36,9 @@ if __name__ == "__main__":
         # Inner loop: register each patient to all atlas patients with a progress bar
         for atlas in tqdm(atlas_patients[:4], desc=f"Registering {patient}", unit="atlas", leave=False):
             try:
-                transformed_delineation_path = register_transform(atlas, patient, DATA_PATH, ELASTIX_PATH, TRANSFORMIX_PATH)
+                transformed_delineation_path = register_transform(atlas, patient, DATA_PATH, OUTPUT_DIR, ELASTIX_PATH, TRANSFORMIX_PATH)
             except:
+                print(f"Failed to register: {patient}!")
                 flag = True
                 break
 
