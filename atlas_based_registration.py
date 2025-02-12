@@ -29,6 +29,7 @@ if __name__ == "__main__":
     register_patients = [patient for patient in patient_list if patient not in atlas_patients]
 
     # Outer loop: iterate over patients with a progress bar
+    flag = False
     for patient in tqdm(register_patients, desc="Processing Patients", unit="patient"):
         aggregate_delination = np.empty(1)
 
@@ -37,6 +38,7 @@ if __name__ == "__main__":
             try:
                 transformed_delineation_path = register_transform(atlas, patient, DATA_PATH, ELASTIX_PATH, TRANSFORMIX_PATH)
             except:
+                flag = True
                 break
 
             transformed_delineation = sitk.GetArrayFromImage(sitk.ReadImage(transformed_delineation_path))
@@ -46,6 +48,10 @@ if __name__ == "__main__":
                 aggregate_delination = transformed_delineation
             else:
                 aggregate_delination = np.add(aggregate_delination, transformed_delineation)
+
+        if flag: # Break out of outer loop
+            flag = False
+            continue
 
         # Save the aggregate delineation
         majority_vote = (aggregate_delination >= (len(atlas_patients) // 2)).astype(int)
