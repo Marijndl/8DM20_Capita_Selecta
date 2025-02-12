@@ -29,13 +29,16 @@ if __name__ == "__main__":
     register_patients = [patient for patient in patient_list if patient not in atlas_patients]
 
     # Outer loop: iterate over patients with a progress bar
-    for patient in tqdm(register_patients[:2], desc="Processing Patients", unit="patient"):
+    for patient in tqdm(register_patients, desc="Processing Patients", unit="patient"):
         aggregate_delination = np.empty(1)
 
         # Inner loop: register each patient to all atlas patients with a progress bar
         for atlas in tqdm(atlas_patients[:4], desc=f"Registering {patient}", unit="atlas", leave=False):
+            try:
+                transformed_delineation_path = register_transform(atlas, patient, DATA_PATH, ELASTIX_PATH, TRANSFORMIX_PATH)
+            except:
+                break
 
-            transformed_delineation_path = register_transform(atlas, patient, DATA_PATH, ELASTIX_PATH, TRANSFORMIX_PATH)
             transformed_delineation = sitk.GetArrayFromImage(sitk.ReadImage(transformed_delineation_path))
 
             # Add deformed delineation to aggregate
@@ -45,7 +48,7 @@ if __name__ == "__main__":
                 aggregate_delination = np.add(aggregate_delination, transformed_delineation)
 
         # Save the aggregate delineation
-        majority_vote = (aggregate_delination >= (len(register_patients) // 2 + 1)).astype(int)
+        majority_vote = (aggregate_delination >= (len(atlas_patients) // 2)).astype(int)
         majority_vote_image = sitk.GetImageFromArray(majority_vote)
         majority_vote_image.SetSpacing([0.488281, 0.488281, 1])  # Each pixel is 0.488281 x 0.488281 x 1 mm^2
 
