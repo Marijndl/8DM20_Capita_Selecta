@@ -53,3 +53,6 @@ if __name__ == "__main__":
 
     # Combine the registrations
     combine_atlas_registrations(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH)
+
+
+    #TEst
