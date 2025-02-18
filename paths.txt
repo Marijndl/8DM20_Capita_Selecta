@@ -1,0 +1,4 @@
+[elastix path]
+[transformix path]
+[data path]
+[output path]
