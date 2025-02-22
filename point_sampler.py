@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use("TkAgg")
+
 import numpy as np
 import SimpleITK as sitk
 import matplotlib.pyplot as plt
@@ -48,9 +51,30 @@ class PointSampler:
 
         return [list(point) for point in points]
 
+    def intensity_weighted_sampling(self, image, favor_high_intensities=True):
+        'Sampling function that randomly samples points in an image based on pixel intensity'
+
+        img_array = sitk.GetArrayFromImage(image)
+
+        pixel_intensities = img_array.flatten().astype(np.float64)
+
+        imgshape = img_array.shape
+
+        if favor_high_intensities:
+            prob_distribution = (pixel_intensities / pixel_intensities.sum())
+        else:
+            prob_distribution = (1 - (pixel_intensities / pixel_intensities.sum()))
+
+
+        sampled_indices = np.random.choice(len(pixel_intensities), size=n_points, replace=False, p=prob_distribution)
+        sampled_points = [np.unravel_index(element, imgshape) for element in sampled_indices]
+
+        return sampled_points
+
 
 if __name__ == "__main__":
-    img = sitk.ReadImage(r'D:\capita_selecta\DevelopmentData\DevelopmentData\p102\mr_bffe.mhd')
+    img = sitk.ReadImage(r'C:\Users\20202310\Desktop\Vakken jaar 1\Capita selecta in medical image analysis\DevelopmentData\p102\mr_bffe.mhd')
+
     x_size, y_size, z_size = img.GetSpacing()[0] * img.GetSize()[0] / 2, img.GetSpacing()[1] * img.GetSize()[1] / 2, \
                              img.GetSpacing()[2] * img.GetSize()[2] / 2
     print(x_size, y_size, z_size)
@@ -70,19 +94,24 @@ if __name__ == "__main__":
     points_gaussian_large_cov = sampler.sample_unique_3d_gaussian(mean, cov_large)
     points_beta = sampler.sample_unique_3d_beta(alpha=beta_size_1, beta=beta_size_1)
     points_beta_small_alpha_beta = sampler.sample_unique_3d_beta(alpha=beta_size_2, beta=beta_size_2)
+    points_intensity_weighed = sampler.intensity_weighted_sampling(image=img,favor_high_intensities=True)
+
 
     print(points_uniform[:5])
     print(points_gaussian[:5])
     print(points_gaussian_large_cov[:5])
     print(points_beta[:5])
     print(points_beta_small_alpha_beta[:5])
+    print(points_intensity_weighed)
 
-    fig, axes = plt.subplots(1, 5, figsize=(25, 5))
+    fig, axes = plt.subplots(1, 6, figsize=(25, 5))
     points_uniform_array = np.array(points_uniform)
     points_gaussian_array = np.array(points_gaussian)
     points_gaussian_large_cov_array = np.array(points_gaussian_large_cov)
     points_beta_array = np.array(points_beta)
     points_beta_small_alpha_beta_array = np.array(points_beta_small_alpha_beta)
+    points_intensity_weighed_array = np.array(points_intensity_weighed)
+
 
     axes[0].scatter(points_uniform_array[:, 0], points_uniform_array[:, 1], s=0.2)
     axes[0].set_title("Sampled from Uniform")
@@ -94,7 +123,8 @@ if __name__ == "__main__":
     axes[3].set_title(f"Sampled from Beta. \n Alpha: {beta_size_1}, Beta: {beta_size_1}")
     axes[4].scatter(points_beta_small_alpha_beta_array[:, 0], points_beta_small_alpha_beta_array[:, 1], s=0.2)
     axes[4].set_title(f"Sampled from Beta. \n Alpha: {beta_size_2}, Beta: {beta_size_2}")
+    axes[5].scatter(points_intensity_weighed_array[:,0],points_intensity_weighed_array[:,1], s=0.2)
+    axes[5].set_title(f"Sampled from intensity weighed")
 
     plt.tight_layout()
     plt.show()
-
