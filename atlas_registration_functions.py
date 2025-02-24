@@ -9,6 +9,7 @@ import SimpleITK as sitk
 def registrate_atlas_patient(atlas, patient, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, verbose):
 
     OUTPUT_DIR = os.path.join(OUTPUT_PATH, fr'reg_{patient}_{atlas}')
+    PARAM_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "parameter_files")
     # Make a results directory if non exists
     if os.path.exists(OUTPUT_DIR) is False:
         os.mkdir(OUTPUT_DIR)
@@ -24,7 +25,10 @@ def registrate_atlas_patient(atlas, patient, DATA_PATH, OUTPUT_PATH, ELASTIX_PAT
     el.register(
         fixed_image=fixed_image_path,
         moving_image=moving_image_path,
-        parameters=[os.path.join(DATA_PATH, 'parameterswithpenalty.txt')],
+        parameters=[
+            os.path.join(PARAM_DIR, 'Par0001translation.txt'),
+            os.path.join(PARAM_DIR, 'Par0001bspline16.txt'),
+                    ],
         output_dir=OUTPUT_DIR,
         verbose=verbose)
 
@@ -65,8 +69,8 @@ def combine_atlas_registrations(atlas_patients, register_patients, OUTPUT_PATH, 
             continue
 
         # Save the aggregate delineation
-        # majority_vote = (aggregate_delination >= (len(atlas_patients) // 2 + 1)).astype(int)
-        majority_vote = (aggregate_delination >= 1).astype(int)
+        majority_vote = (aggregate_delination >= (len(atlas_patients) // 2 + 1)).astype(int)
+        # majority_vote = (aggregate_delination >= 1).astype(int)
         majority_vote_image = sitk.GetImageFromArray(majority_vote)
         majority_vote_image.SetSpacing([0.488281, 0.488281, 1])  # Each pixel is 0.488281 x 0.488281 x 1 mm^2
 

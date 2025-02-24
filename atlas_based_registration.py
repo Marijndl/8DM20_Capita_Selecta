@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 ELASTIX_PATH = r'D:\Elastix\elastix.exe'
 TRANSFORMIX_PATH = r'D:\Elastix\transformix.exe'
 DATA_PATH = r'D:\capita_selecta\DevelopmentData\DevelopmentData'
-OUTPUT_PATH = r'D:\capita_selecta\results_experiments_3'
+OUTPUT_PATH = r'D:\capita_selecta\results_experiments_paper'
 
 if not os.path.exists(ELASTIX_PATH):
     raise IOError('Elastix cannot be found, please set the correct ELASTIX_PATH.')
@@ -49,10 +49,7 @@ if __name__ == "__main__":
     register_patients = [patient for patient in patient_list if patient not in atlas_patients]
 
     # Register all the patients
-    # register_all_patients(atlas_patients, register_patients, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, verbose=True)
+    register_all_patients(atlas_patients, register_patients, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, verbose=True)
 
     # Combine the registrations
     combine_atlas_registrations(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH)
-
-
-    #TEst
