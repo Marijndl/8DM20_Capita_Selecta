@@ -5,6 +5,7 @@ import numpy as np
 import imageio
 import os
 import SimpleITK as sitk
+import seaborn as sns
 
 def registrate_atlas_patient(atlas, patient, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, verbose):
 
@@ -80,3 +81,54 @@ def combine_atlas_registrations(atlas_patients, register_patients, OUTPUT_PATH, 
         sitk.WriteImage(majority_vote_image, output_path)
 
     return None
+
+def calc_dice(true_del, est_del):
+    # Ensure the arrays are binary (0s and 1s)
+    true_del = (true_del > 0).astype(np.uint8)
+    est_del = (est_del > 0).astype(np.uint8)
+
+    intersection = np.sum(true_del * est_del)
+    size1 = np.sum(true_del)
+    size2 = np.sum(est_del)
+
+    if size1 + size2 == 0:
+        return 1.0  # If both are empty, define DICE as 1.0 (perfect match)
+
+    return 2.0 * intersection / (size1 + size2)
+
+
+def find_all_to_all(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH, verbose=False,
+                    plot_matrix=False):
+    dice_scores = np.zeros((len(atlas_patients), len(register_patients)))
+
+    for j, patient in enumerate(register_patients):
+        print(f"Processing Patient: {patient}")
+
+        for i, atlas in enumerate(atlas_patients):
+            OUTPUT_DIR = os.path.join(OUTPUT_PATH, f'reg_{patient}_{atlas}')
+            transform_path = os.path.join(OUTPUT_DIR, 'TransformParameters.0.txt')
+
+            if not os.path.exists(transform_path):
+                dice_scores[i, j] = np.nan  # Indicate missing transformation
+                continue
+
+            tr = elastix.TransformixInterface(parameters=transform_path, transformix_path=TRANSFORMIX_PATH)
+            moving_delineation_path = os.path.join(DATA_PATH, atlas, 'prostaat.mhd')
+            transformed_delineation_path = tr.transform_image(moving_delineation_path, output_dir=OUTPUT_DIR,
+                                                              verbose=verbose)
+
+            transformed_delineation = sitk.GetArrayFromImage(sitk.ReadImage(transformed_delineation_path))
+            true_delineation = sitk.GetArrayFromImage(sitk.ReadImage(os.path.join(DATA_PATH, patient, 'prostaat.mhd')))
+
+            dice_scores[i, j] = calc_dice(transformed_delineation, true_delineation)
+
+    if plot_matrix:
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(dice_scores, annot=True, fmt=".2f", xticklabels=register_patients, yticklabels=atlas_patients,
+                    cmap="viridis")
+        plt.xlabel("Registered Patients")
+        plt.ylabel("Atlas Patients")
+        plt.title("DICE Score Confusion Matrix")
+        plt.show()
+
+    return dice_scores
