@@ -72,13 +72,14 @@ def combine_atlas_registrations(atlas_patients, register_patients, OUTPUT_PATH, 
         # Save the aggregate delineation
         majority_vote = (aggregate_delination >= (len(atlas_patients) // 2 + 1)).astype(int)
         # majority_vote = (aggregate_delination >= 1).astype(int)
-        majority_vote_image = sitk.GetImageFromArray(majority_vote)
-        majority_vote_image.SetSpacing([0.488281, 0.488281, 1])  # Each pixel is 0.488281 x 0.488281 x 1 mm^2
+        advocate_vote = (aggregate_delination >= 2).astype(int)
+        voted_image = sitk.GetImageFromArray(advocate_vote)
+        voted_image.SetSpacing([0.488281, 0.488281, 1])  # Each pixel is 0.488281 x 0.488281 x 1 mm
 
         os.makedirs(OUTPUT_DIR, exist_ok=True)  # Ensure output directory exists
         output_path = os.path.join(OUTPUT_PATH, f'reg_maj_{patient}.mhd')
 
-        sitk.WriteImage(majority_vote_image, output_path)
+        sitk.WriteImage(voted_image, output_path)
 
     return None
 
