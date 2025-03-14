@@ -6,6 +6,9 @@ import imageio
 import os
 import SimpleITK as sitk
 import seaborn as sns
+from skimage.metrics import hausdorff_distance
+from tensorflow.python.ops.metrics_impl import precision
+
 
 def registrate_atlas_patient(atlas, patient, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, verbose):
 
@@ -98,9 +101,37 @@ def calc_dice(true_del, est_del):
     return 2.0 * intersection / (size1 + size2)
 
 
+def compute_metrics(true_del, est_del):
+    """
+    Compute accuracy and precision for binary masks.
+
+    Parameters:
+    - true_del: Ground truth binary mask (numpy array of 0s and 1s)
+    - est_del: Predicted binary mask (numpy array of 0s and 1s)
+
+    Returns:
+    - accuracy: (TP + TN) / (TP + TN + FP + FN)
+    - precision: TP / (TP + FP)
+    """
+    assert true_del.shape == est_del.shape, "Masks must have the same shape"
+
+    TP = np.sum((true_del == 1) & (est_del == 1))  # True Positives
+    TN = np.sum((true_del == 0) & (est_del == 0))  # True Negatives
+    FP = np.sum((true_del == 0) & (est_del == 1))  # False Positives
+    FN = np.sum((true_del == 1) & (est_del == 0))  # False Negatives
+
+    accuracy = (TP + TN) / (TP + TN + FP + FN)
+    precision = TP / (TP + FP) if (TP + FP) > 0 else 0  # Avoid division by zero
+
+    return accuracy, precision
+
+
 def find_all_to_all(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH, verbose=False,
                     plot_matrix=False):
     dice_scores = np.zeros((len(atlas_patients), len(register_patients)))
+    hausdorff_distance_scores = np.zeros((len(atlas_patients), len(register_patients)))
+    accuracy_scores = np.zeros((len(atlas_patients), len(register_patients)))
+    precision_scores = np.zeros((len(atlas_patients), len(register_patients)))
 
     for j, patient in enumerate(register_patients):
         print(f"Processing Patient: {patient}")
@@ -111,6 +142,9 @@ def find_all_to_all(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, T
 
             if not os.path.exists(transform_path):
                 dice_scores[i, j] = np.nan  # Indicate missing transformation
+                hausdorff_distance_scores[i, j] = np.nan  # Indicate missing transformation
+                accuracy_scores[i, j] = np.nan  # Indicate missing transformation
+                precision_scores[i, j] = np.nan  # Indicate missing transformation
                 continue
 
             tr = elastix.TransformixInterface(parameters=transform_path, transformix_path=TRANSFORMIX_PATH)
@@ -121,7 +155,9 @@ def find_all_to_all(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, T
             transformed_delineation = sitk.GetArrayFromImage(sitk.ReadImage(transformed_delineation_path))
             true_delineation = sitk.GetArrayFromImage(sitk.ReadImage(os.path.join(DATA_PATH, patient, 'prostaat.mhd')))
 
-            dice_scores[i, j] = calc_dice(transformed_delineation, true_delineation)
+            dice_scores[i, j] = calc_dice(true_delineation, transformed_delineation)
+            hausdorff_distance_scores[i, j] = hausdorff_distance(true_delineation, transformed_delineation)
+            accuracy_scores[i, j], precision_scores[i, j] = compute_metrics(true_delineation, transformed_delineation)
 
     if plot_matrix:
         plt.figure(figsize=(10, 8))
@@ -132,4 +168,4 @@ def find_all_to_all(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, T
         plt.title("DICE Score Confusion Matrix")
         plt.show()
 
-    return dice_scores
+    return dice_scores, hausdorff_distance_scores, accuracy_scores, precision_scores

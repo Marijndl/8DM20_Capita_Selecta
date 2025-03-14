@@ -45,8 +45,11 @@ if __name__ == "__main__":
     # Get patient names and select atlas patients
     patient_list = [patient for patient in os.listdir(DATA_PATH) if os.path.isdir(os.path.join(DATA_PATH, patient))]
     # atlas_patients = patient_list[:5]
-    atlas_patients = ["p102", "p108", "p109"]
-    register_patients = [patient for patient in patient_list if patient not in atlas_patients]
+    atlas_patients = ["p109", "p120", "p125"]
+    # register_patients = [patient for patient in patient_list if patient not in atlas_patients]
+    register_patients = ["p137", "p141", "p143", "p144", "p147"]
+
+    patient_list = [patient for patient in patient_list if patient not in register_patients]
 
     # Register all the patients
     # register_all_patients(atlas_patients, register_patients, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, verbose=True)
@@ -58,5 +61,16 @@ if __name__ == "__main__":
     # combine_atlas_registrations(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH)
 
     #All to all DICE scores:
-    find_all_to_all(patient_list, patient_list, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH, verbose=False,
+    dice_scores, hausdorff, accuracy, precision = find_all_to_all(patient_list, patient_list, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH, verbose=False,
                     plot_matrix=True)
+    print("DICE:\n")
+    print(repr(dice_scores))
+
+    print("hausdorff:\n")
+    print(repr(hausdorff))
+
+    print("accuracy:\n")
+    print(repr(accuracy))
+
+    print("precision:\n")
+    print(repr(precision))
