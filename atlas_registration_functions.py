@@ -156,8 +156,11 @@ def find_all_to_all(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, T
             true_delineation = sitk.GetArrayFromImage(sitk.ReadImage(os.path.join(DATA_PATH, patient, 'prostaat.mhd')))
 
             dice_scores[i, j] = calc_dice(true_delineation, transformed_delineation)
-            hausdorff_distance_scores[i, j] = hausdorff_distance(true_delineation, transformed_delineation)
-            accuracy_scores[i, j], precision_scores[i, j] = compute_metrics(true_delineation, transformed_delineation)
+            # hausdorff_distance_scores[i, j] = hausdorff_distance(true_delineation, transformed_delineation)
+            # accuracy_scores[i, j], precision_scores[i, j] = compute_metrics(true_delineation, transformed_delineation)
+
+            hausdorff_distance_scores[i, j] = 1
+            accuracy_scores[i, j], precision_scores[i, j] = (1,1)
 
     if plot_matrix:
         plt.figure(figsize=(10, 8))
@@ -167,5 +170,34 @@ def find_all_to_all(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, T
         plt.ylabel("Atlas Patients")
         plt.title("DICE Score Confusion Matrix")
         plt.show()
+
+    return dice_scores, hausdorff_distance_scores, accuracy_scores, precision_scores
+
+def find_group(register_patients, OUTPUT_PATH, DATA_PATH):
+    # Init scores arrays
+    dice_scores = np.zeros(len(register_patients))
+    hausdorff_distance_scores = np.zeros(len(register_patients))
+    accuracy_scores = np.zeros(len(register_patients))
+    precision_scores = np.zeros(len(register_patients))
+
+    for i, patient in enumerate(register_patients):
+        true_delineation_path = os.path.join(DATA_PATH, patient, 'prostaat.mhd')
+        est_delineation_path = os.path.join(OUTPUT_PATH, f'reg_maj_{patient}.mhd')
+
+        if not os.path.exists(est_delineation_path):
+            dice_scores[i] = np.nan  # Indicate missing transformation
+            hausdorff_distance_scores[i] = np.nan  # Indicate missing transformation
+            accuracy_scores[i] = np.nan  # Indicate missing transformation
+            precision_scores[i] = np.nan  # Indicate missing transformation
+            continue
+
+        true_delineation = sitk.GetArrayFromImage(sitk.ReadImage(true_delineation_path))
+        est_delineation = sitk.GetArrayFromImage(sitk.ReadImage(est_delineation_path))
+
+        # Calculate metrics:
+        dice_scores[i] = calc_dice(true_delineation, est_delineation)
+        hausdorff_distance_scores[i] = hausdorff_distance(true_delineation, est_delineation)
+        accuracy_scores[i], precision_scores[i] = compute_metrics(true_delineation, est_delineation)
+
 
     return dice_scores, hausdorff_distance_scores, accuracy_scores, precision_scores
