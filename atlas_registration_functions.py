@@ -11,7 +11,17 @@ from tensorflow.python.ops.metrics_impl import precision
 
 
 def registrate_atlas_patient(atlas, patient, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, verbose):
+    """
+    Registers an atlas image to a patient image using Elastix.
 
+    Parameters:
+    - atlas (str): Name of the atlas patient.
+    - patient (str): Name of the patient.
+    - DATA_PATH (str): Directory containing patient and atlas data.
+    - OUTPUT_PATH (str): Directory to store registration results.
+    - ELASTIX_PATH (str): Path to the Elastix executable.
+    - verbose (bool): Boolean flag for verbose output.
+    """
     OUTPUT_DIR = os.path.join(OUTPUT_PATH, fr'reg_{patient}_{atlas}')
     PARAM_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "parameter_files")
     # Make a results directory if non exists
@@ -39,7 +49,17 @@ def registrate_atlas_patient(atlas, patient, DATA_PATH, OUTPUT_PATH, ELASTIX_PAT
     return None
 
 def combine_atlas_registrations(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH, verbose=False):
+    """
+    Combines atlas delineations transformed to patient space using majority voting.
 
+    Parameters:
+    - atlas_patients (list of str): List of atlas patient names.
+    - register_patients (list of str): List of patient names for registration.
+    - OUTPUT_PATH (str): Directory to store results.
+    - DATA_PATH (str): Directory containing the dataset.
+    - TRANSFORMIX_PATH (str): Path to the Transformix executable.
+    - verbose (bool, optional): Boolean flag for verbose output (default: False).
+    """
     for patient in register_patients:
         print(f"Patient: {patient}")
         aggregate_delination = np.empty(1)
@@ -87,6 +107,16 @@ def combine_atlas_registrations(atlas_patients, register_patients, OUTPUT_PATH, 
     return None
 
 def calc_dice(true_del, est_del):
+    """
+    Computes the Dice Similarity Coefficient between two binary segmentations.
+
+    Parameters:
+    - true_del (numpy.ndarray): Ground truth binary mask.
+    - est_del (numpy.ndarray): Estimated binary mask.
+
+    Returns:
+    - float: Dice coefficient value.
+    """
     # Ensure the arrays are binary (0s and 1s)
     true_del = (true_del > 0).astype(np.uint8)
     est_del = (est_del > 0).astype(np.uint8)
@@ -103,15 +133,16 @@ def calc_dice(true_del, est_del):
 
 def compute_metrics(true_del, est_del):
     """
-    Compute accuracy and precision for binary masks.
+    Computes accuracy and precision for binary masks.
 
     Parameters:
-    - true_del: Ground truth binary mask (numpy array of 0s and 1s)
-    - est_del: Predicted binary mask (numpy array of 0s and 1s)
+    - true_del (numpy.ndarray): Ground truth binary mask.
+    - est_del (numpy.ndarray): Estimated binary mask.
 
     Returns:
-    - accuracy: (TP + TN) / (TP + TN + FP + FN)
-    - precision: TP / (TP + FP)
+    - tuple: (accuracy, precision)
+      - accuracy (float): Ratio of correctly classified pixels.
+      - precision (float): Ratio of correctly predicted positive pixels.
     """
     assert true_del.shape == est_del.shape, "Masks must have the same shape"
 
@@ -128,6 +159,25 @@ def compute_metrics(true_del, est_del):
 
 def find_all_to_all(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH, verbose=False,
                     plot_matrix=False):
+    """
+    Computes similarity metrics between atlas delineations and registered patient delineations.
+
+    Parameters:
+    - atlas_patients (list of str): List of atlas patient names.
+    - register_patients (list of str): List of patient names for registration.
+    - OUTPUT_PATH (str): Directory where registered images are stored.
+    - DATA_PATH (str): Directory containing the dataset.
+    - TRANSFORMIX_PATH (str): Path to the Transformix executable.
+    - verbose (bool, optional): If True, enables verbose output (default: False).
+    - plot_matrix (bool, optional): If True, plots a heatmap of Dice scores (default: False).
+
+    Returns:
+    - tuple: (dice_scores, hausdorff_distance_scores, accuracy_scores, precision_scores)
+      - dice_scores (numpy.ndarray): Dice similarity coefficients.
+      - hausdorff_distance_scores (numpy.ndarray): Hausdorff distances.
+      - accuracy_scores (numpy.ndarray): Accuracy values.
+      - precision_scores (numpy.ndarray): Precision values.
+    """
     dice_scores = np.zeros((len(atlas_patients), len(register_patients)))
     hausdorff_distance_scores = np.zeros((len(atlas_patients), len(register_patients)))
     accuracy_scores = np.zeros((len(atlas_patients), len(register_patients)))
@@ -174,6 +224,21 @@ def find_all_to_all(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, T
     return dice_scores, hausdorff_distance_scores, accuracy_scores, precision_scores
 
 def find_group(register_patients, OUTPUT_PATH, DATA_PATH):
+    """
+       Computes similarity metrics for majority-voted segmentation masks.
+
+       Parameters:
+       - register_patients (list of str): List of patient names for evaluation.
+       - OUTPUT_PATH (str): Directory containing registered majority-voted segmentations.
+       - DATA_PATH (str): Directory containing ground truth segmentations.
+
+       Returns:
+       - tuple: (dice_scores, hausdorff_distance_scores, accuracy_scores, precision_scores)
+         - dice_scores (numpy.ndarray): Dice similarity coefficients.
+         - hausdorff_distance_scores (numpy.ndarray): Hausdorff distances.
+         - accuracy_scores (numpy.ndarray): Accuracy values.
+         - precision_scores (numpy.ndarray): Precision values.
+    """
     # Init scores arrays
     dice_scores = np.zeros(len(register_patients))
     hausdorff_distance_scores = np.zeros(len(register_patients))

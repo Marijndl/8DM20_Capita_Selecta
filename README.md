@@ -1,4 +1,4 @@
-## Repository for Medical Image Registration and Analysis
+# Repository for Medical Image Registration and Analysis
 This repository contains code for performing atlas-based segmentation using registration with Elastix. It includes scripts for both image registration and statistical analysis.
 
 This work was conducted for the course 8DM20: Capita Selecta for Medical Imaging in the Department of Biomedical Engineering at Eindhoven University of Technology.

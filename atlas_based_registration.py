@@ -7,11 +7,11 @@ from atlas_registration_functions import registrate_atlas_patient, combine_atlas
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-# Paths
-ELASTIX_PATH = r'D:\Elastix\elastix.exe'
-TRANSFORMIX_PATH = r'D:\Elastix\transformix.exe'
-DATA_PATH = r'D:\capita_selecta\DevelopmentData\DevelopmentData'
-OUTPUT_PATH = r'D:\capita_selecta\results_group_4_mixed'
+# Paths, Make sure the elastix folder etc. is included in your current working directory
+paths = dict(line.strip().split("=", 1) for line in open("paths.txt"))
+ELASTIX_PATH, TRANSFORMIX_PATH, DATA_PATH, OUTPUT_DIR, PARAM_PATH = (
+    paths.get(k) for k in ["elastix_path", "transformix_path", "data_path", "output_path", "paramaters_path"]
+)
 
 if not os.path.exists(ELASTIX_PATH):
     raise IOError('Elastix cannot be found, please set the correct ELASTIX_PATH.')
@@ -19,23 +19,19 @@ if not os.path.exists(TRANSFORMIX_PATH):
     raise IOError('Transformix cannot be found, please set the correct TRANSFORMIX_PATH.')
 
 
-def register_all_patients(atlas_patients, register_patients, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, verbose=False):
+def register_all_patients(atlas_patients, register_patients, DATA_PATH, OUTPUT_DIR, ELASTIX_PATH, verbose=False):
     # Outer loop: iterate over patients with a progress bar
-    flag = False
     for patient in tqdm(register_patients, desc="Processing Patients", unit="patient"):
         # Inner loop: register each patient to all atlas patients with a progress bar
         for atlas in tqdm(atlas_patients, desc=f"Registering {patient}", unit="atlas", leave=False):
             try:
-                _ = registrate_atlas_patient(atlas, patient, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH,
+                _ = registrate_atlas_patient(atlas, patient, DATA_PATH, OUTPUT_DIR, ELASTIX_PATH,
                                       verbose)
             except:
                 print(f"Failed to register atlas {atlas} to patient {patient}!")
                 flag = True
                 break
 
-        # if flag: # Break out of outer loop
-        #     flag = False
-        #     continue
         tqdm.write(f"Registered patient: {patient}.")
 
     return None
@@ -58,16 +54,16 @@ if __name__ == "__main__":
     # patient_list = [patient for patient in patient_list if patient not in register_patients]
 
     # Register all the patients
-    register_all_patients(atlas_patients, register_patients, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, verbose=True)
+    register_all_patients(atlas_patients, register_patients, DATA_PATH, OUTPUT_DIR, ELASTIX_PATH, verbose=True)
 
     # Register all to all:
-    # register_all_patients(patient_list, patient_list, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, verbose=True)
+    # register_all_patients(patient_list, patient_list, DATA_PATH, OUTPUT_DIR, ELASTIX_PATH, verbose=True)
 
     # Combine the registrations
-    combine_atlas_registrations(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH)
+    combine_atlas_registrations(atlas_patients, register_patients, OUTPUT_DIR, DATA_PATH, TRANSFORMIX_PATH)
 
     #All to all DICE scores:
-    # dice_scores, hausdorff, accuracy, precision = find_all_to_all(patient_list, patient_list, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH, verbose=False,
+    # dice_scores, hausdorff, accuracy, precision = find_all_to_all(patient_list, patient_list, OUTPUT_DIR, DATA_PATH, TRANSFORMIX_PATH, verbose=False,
     #                 plot_matrix=True)
     # print("DICE:\n")
     # print(repr(dice_scores))
