@@ -1,0 +1,5 @@
+elastix_path=D:\Elastix\elastix.exe
+transformix_path=D:\Elastix\transformix.exe
+data_path=D:\capita_selecta\DevelopmentData\DevelopmentData
+output_path=D:\capita_selecta\results_all_to_all
+paramaters_path=C:\Users\20203226\Documents\GitHub\8DM20_Capita_Selecta\parameter_files
