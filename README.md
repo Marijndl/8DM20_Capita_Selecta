@@ -117,46 +117,20 @@ The `atlas_based_registration.py` script performs atlas-based registration using
 
 ### Feature Extraction
 
-The `extractfeatures.py` script extracts features from medical images.
+The `extractfeatures_implementation.ipynb` notebook extracts features from the images.
 
 1.  **Data Preparation:** The script expects the same data organization as the atlas-based registration.
 
 2.  **Configuration:** Modify the `DATA_PATH` variable in the script.
 
-3.  **Execution:**
-
-    ```bash
-    python extractfeatures.py
-    ```
-
-    ```python
-    import extractfeatures
-
-    DATA_PATH = r'D:\capita_selecta\DevelopmentData\DevelopmentData'
-    extractor = extractfeatures.extractfeatures(DATA_PATH)
-
-    # Calculate features
-    svr = extractor.calculate_svr()
-    volume = extractor.calculate_volume()
-    heterogeneity = extractor.calculate_heterogeneity()
-    product_values, product_values_normalized = extractor.calculate_product_values()
-
-    # Generate plots
-    extractor.generate_2d_plots()
-    extractor.generate_normalized_plots()
-    extractor.generate_vertical_plot()
-    extractor.generate_3d_plot()
-
-    # Create percentile groups
-    percentile_groups = extractor.create_percentile_groups()
-    print(percentile_groups)
-    ```
+3.  **Execution:** Run the different cells in the notebook to extract the features, calculate the performance of the performed registrations and then find correlations.
 
     This will:
 
     *   Calculate the surface-to-volume ratio (SVR), volume, and heterogeneity for each patient.
     *   Generate scatter plots to visualize the relationships between these features.
-    *   Divide the patients into percentile groups based on the calculated metrics.
+    *   Calculate the DICE score, Hausdorff distance, accuracy, and precision of the performed registrations.
+    *   Calculate the Spearmans correlation between certain features and several performance metrics.
 
 ## Files
 
