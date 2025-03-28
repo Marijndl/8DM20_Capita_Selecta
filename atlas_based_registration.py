@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 ELASTIX_PATH = r'D:\Elastix\elastix.exe'
 TRANSFORMIX_PATH = r'D:\Elastix\transformix.exe'
 DATA_PATH = r'D:\capita_selecta\DevelopmentData\DevelopmentData'
-OUTPUT_PATH = r'D:\capita_selecta\results_all_to_all'
+OUTPUT_PATH = r'D:\capita_selecta\results_group_4_mixed'
 
 if not os.path.exists(ELASTIX_PATH):
     raise IOError('Elastix cannot be found, please set the correct ELASTIX_PATH.')
@@ -45,32 +45,38 @@ if __name__ == "__main__":
     # Get patient names and select atlas patients
     patient_list = [patient for patient in os.listdir(DATA_PATH) if os.path.isdir(os.path.join(DATA_PATH, patient))]
     # atlas_patients = patient_list[:5]
-    atlas_patients = ["p109", "p120", "p125"]
-    # register_patients = [patient for patient in patient_list if patient not in atlas_patients]
-    register_patients = ["p137", "p141", "p143", "p144", "p147"]
+    # atlas_patients = ["p135", "p107", "p115"] # low
+    # atlas_patients = ["p125", "p120", "p133"] # middle
+    # atlas_patients = ["p109", "p108", "p129"] # high
+    atlas_patients = ["p135", "p120", "p129"] # combined
+    test_patients = ["p137", "p141", "p143", "p144", "p147"] # test set images
 
-    patient_list = [patient for patient in patient_list if patient not in register_patients]
+    register_patients = [patient for patient in patient_list if patient not in atlas_patients]
+    print(atlas_patients)
+    print(register_patients)
+
+    # patient_list = [patient for patient in patient_list if patient not in register_patients]
 
     # Register all the patients
-    # register_all_patients(atlas_patients, register_patients, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, verbose=True)
+    register_all_patients(atlas_patients, register_patients, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, verbose=True)
 
     # Register all to all:
     # register_all_patients(patient_list, patient_list, DATA_PATH, OUTPUT_PATH, ELASTIX_PATH, verbose=True)
 
     # Combine the registrations
-    # combine_atlas_registrations(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH)
+    combine_atlas_registrations(atlas_patients, register_patients, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH)
 
     #All to all DICE scores:
-    dice_scores, hausdorff, accuracy, precision = find_all_to_all(patient_list, patient_list, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH, verbose=False,
-                    plot_matrix=True)
-    print("DICE:\n")
-    print(repr(dice_scores))
-
-    print("hausdorff:\n")
-    print(repr(hausdorff))
-
-    print("accuracy:\n")
-    print(repr(accuracy))
-
-    print("precision:\n")
-    print(repr(precision))
+    # dice_scores, hausdorff, accuracy, precision = find_all_to_all(patient_list, patient_list, OUTPUT_PATH, DATA_PATH, TRANSFORMIX_PATH, verbose=False,
+    #                 plot_matrix=True)
+    # print("DICE:\n")
+    # print(repr(dice_scores))
+    #
+    # print("hausdorff:\n")
+    # print(repr(hausdorff))
+    #
+    # print("accuracy:\n")
+    # print(repr(accuracy))
+    #
+    # print("precision:\n")
+    # print(repr(precision))
