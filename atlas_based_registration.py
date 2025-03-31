@@ -17,6 +17,10 @@ if not os.path.exists(ELASTIX_PATH):
     raise IOError('Elastix cannot be found, please set the correct ELASTIX_PATH.')
 if not os.path.exists(TRANSFORMIX_PATH):
     raise IOError('Transformix cannot be found, please set the correct TRANSFORMIX_PATH.')
+if not os.path.exists(DATA_PATH):
+    raise FileNotFoundError('Data path cannot be found, please set the correct DATA_PATH.')
+if not os.path.exists(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
 def register_all_patients(atlas_patients, register_patients, DATA_PATH, OUTPUT_DIR, ELASTIX_PATH, verbose=False):
